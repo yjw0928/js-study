@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        class TaskSchedule {
+
+            constructor() {
+                this.taskQueue = [];
+                this.isRunning = false;
+            }
+
+            addTask(task) {
+                this.taskQueue.push(task);
+                if (!this.isRunning) {
+                    this.run();
+                }
+            }
+
+            run() {
+                this.isRunning = true;
+                const startTime = performance.now();
+                requestAnimationFrame(() => {
+                    const currentTime = performance.now();
+                    const frameTimeBudget = 16.67; // 60Hz 显示器的帧时间预算
+                    const deadline = startTime + frameTimeBudget;
+                    while (currentTime < deadline && this.taskQueue.length > 0) {
+                        const task = this.taskQueue.shift();
+                        task();
+                        if (this.taskQueue.length > 0) {
+                            const nextTaskStartTime = performance.now();
+                            if (nextTaskStartTime + 1 > deadline) {
+                                break; // 如果下一个任务开始时间接近或超过截止时间，停止执行
+                            }
+                        }
+                    }
+
+                    if (this.taskQueue.length > 0) {
+                        requestAnimationFrame(this.run.bind(this));
+                    } else {
+                        this.isRunning = false;
+                    }
+                })
+            }
+        }
+
+    </script>
+</body>
+</html>
